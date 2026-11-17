@@ -3,10 +3,11 @@ import type { Cliente } from './types';
 
 interface ClienteTableProps {
     clientes: Cliente[];
-    onEditar: (cliente: Cliente) => void;
-    onEliminar: (cliente: Cliente) => void;
+    onEditar: (cliente: Cliente) => void; // la define Index.tsx
+    onEliminar: (cliente: Cliente) => void; // la define Index.tsx
 }
 
+// Muestra la lista de clientes; las acciones se avisan a Index.tsx
 export default function ClienteTable({ clientes, onEditar, onEliminar }: ClienteTableProps) {
     return (
         <div style={styles.contenedor}>
@@ -21,6 +22,7 @@ export default function ClienteTable({ clientes, onEditar, onEliminar }: Cliente
                     </tr>
                 </thead>
                 <tbody>
+                    {/* Una fila por cliente; key ayuda a React a identificar cada fila. "-" si no tiene teléfono */}
                     {clientes.map((cliente) => (
                         <tr key={cliente.id}>
                             <td style={styles.td}>{cliente.nombre_completo}</td>

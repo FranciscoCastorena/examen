@@ -1,9 +1,12 @@
 import type { ClienteDatos } from './types';
 
-export type ErroresCliente = Partial<Record<keyof ClienteDatos, string>>;
+// Ejemplo: { email: 'El email es obligatorio' }
+export type ErroresCliente = Record<string, string>;
 
+// Formato: texto@texto.texto
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Devuelve un objeto con los errores encontrados, o {} si todo está bien
 export function validarCliente(datos: ClienteDatos): ErroresCliente {
     const errores: ErroresCliente = {};
 

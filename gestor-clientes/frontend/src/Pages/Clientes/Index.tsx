@@ -1,6 +1,5 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import Modal from '@/Components/Modal';
-import Paginacion from '@/Components/Paginacion';
 import { actualizarCliente, crearCliente, eliminarCliente, getClientes } from '@/Utils/Api/clientes';
 import ClienteForm from './ClienteForm';
 import ClienteTable from './ClienteTable';
@@ -11,18 +10,15 @@ interface Mensaje {
     texto: string;
 }
 
-const CLIENTES_POR_PAGINA = 10;
-
 export default function ClientesIndex() {
+    // Lista de clientes y estado de la carga
     const [clientes, setClientes] = useState<Cliente[]>([]);
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState('');
 
-    const [busqueda, setBusqueda] = useState('');
     const [modalAbierto, setModalAbierto] = useState(false);
-    const [clienteEditando, setClienteEditando] = useState<Cliente | null>(null);
-    const [mensaje, setMensaje] = useState<Mensaje | null>(null);
-    const [pagina, setPagina] = useState(1);
+    const [clienteEditando, setClienteEditando] = useState<Cliente | null>(null); // null = nuevo cliente
+    const [mensaje, setMensaje] = useState<Mensaje | null>(null); // aviso de éxito o error
 
     // Cargar clientes desde la API
     async function cargarClientes() {
@@ -38,6 +34,7 @@ export default function ClientesIndex() {
         }
     }
 
+    // Se ejecuta una sola vez, al abrir la página
     useEffect(() => {
         cargarClientes();
     }, []);
@@ -48,11 +45,13 @@ export default function ClientesIndex() {
         setTimeout(() => setMensaje(null), 3000);
     }
 
+    // Abre el modal con el formulario vacío
     function abrirNuevo() {
         setClienteEditando(null);
         setModalAbierto(true);
     }
 
+    // Abre el modal con los datos del cliente seleccionado
     function abrirEditar(cliente: Cliente) {
         setClienteEditando(cliente);
         setModalAbierto(true);
@@ -63,6 +62,8 @@ export default function ClientesIndex() {
         setClienteEditando(null);
     }
 
+    // Crea o actualiza según si hay un cliente en edición.
+    // Si la API falla, el error lo muestra el formulario.
     async function guardarCliente(datos: ClienteDatos) {
         if (clienteEditando) {
             await actualizarCliente(clienteEditando.id, datos);
@@ -70,12 +71,12 @@ export default function ClientesIndex() {
         } else {
             await crearCliente(datos);
             mostrarMensaje('exito', 'Cliente creado correctamente');
-            setPagina(1); // el cliente nuevo aparece al principio de la lista
         }
         cerrarModal();
-        cargarClientes();
+        cargarClientes(); // refresca la tabla
     }
 
+    // Pide confirmación, elimina y refresca la tabla
     async function borrarCliente(cliente: Cliente) {
         if (!window.confirm(`¿Seguro que deseas eliminar a ${cliente.nombre_completo}?`)) return;
 
@@ -87,21 +88,6 @@ export default function ClientesIndex() {
         }
         cargarClientes();
     }
-
-    // Filtrar por nombre, email o empresa
-    const texto = busqueda.toLowerCase();
-    const clientesFiltrados = clientes.filter(
-        (c) =>
-            c.nombre_completo.toLowerCase().includes(texto) ||
-            c.email.toLowerCase().includes(texto) ||
-            c.empresa.toLowerCase().includes(texto),
-    );
-
-    // Paginación: se muestran solo los clientes de la página actual
-    const totalPaginas = Math.max(1, Math.ceil(clientesFiltrados.length / CLIENTES_POR_PAGINA));
-    const paginaActual = Math.min(pagina, totalPaginas); // por si se borró el último cliente de la última página
-    const inicio = (paginaActual - 1) * CLIENTES_POR_PAGINA;
-    const clientesPagina = clientesFiltrados.slice(inicio, inicio + CLIENTES_POR_PAGINA);
 
     return (
         <div style={styles.contenedor}>
@@ -118,17 +104,12 @@ export default function ClientesIndex() {
                 </div>
             )}
 
-            <input
-                style={styles.buscador}
-                type="text"
-                placeholder="Buscar por nombre, email o empresa"
-                value={busqueda}
-                onChange={(e) => {
-                    setBusqueda(e.target.value);
-                    setPagina(1); // al buscar, volver a la primera página
-                }}
-            />
-
+            {/*
+                Según el estado se muestra una cosa u otra:
+                - cargando: true mientras se espera la respuesta de la API
+                - error: mensaje si la API falló (vacío si todo salió bien)
+                - clientes: la lista que devolvió la API (vacía si no hay registros)
+            */}
             {cargando && <p style={styles.estado}>Cargando clientes...</p>}
 
             {!cargando && error && (
@@ -144,21 +125,8 @@ export default function ClientesIndex() {
                 <p style={styles.estado}>No hay clientes registrados.</p>
             )}
 
-            {!cargando && !error && clientes.length > 0 && clientesFiltrados.length === 0 && (
-                <p style={styles.estado}>No se encontraron clientes con esa búsqueda.</p>
-            )}
-
-            {!cargando && !error && clientesFiltrados.length > 0 && (
-                <>
-                    <ClienteTable clientes={clientesPagina} onEditar={abrirEditar} onEliminar={borrarCliente} />
-                    <Paginacion
-                        paginaActual={paginaActual}
-                        totalPaginas={totalPaginas}
-                        totalRegistros={clientesFiltrados.length}
-                        porPagina={CLIENTES_POR_PAGINA}
-                        onCambiarPagina={setPagina}
-                    />
-                </>
+            {!cargando && !error && clientes.length > 0 && (
+                <ClienteTable clientes={clientes} onEditar={abrirEditar} onEliminar={borrarCliente} />
             )}
 
             {modalAbierto && (
@@ -205,17 +173,6 @@ const styles: Record<string, CSSProperties> = {
         fontSize: 14,
         fontFamily: 'inherit',
         cursor: 'pointer',
-    },
-    buscador: {
-        width: '100%',
-        maxWidth: 400,
-        padding: '9px 12px',
-        marginBottom: 16,
-        border: '1px solid #ccc',
-        borderRadius: 6,
-        fontSize: 14,
-        fontFamily: 'inherit',
-        boxSizing: 'border-box',
     },
     estado: {
         padding: '40px 0',

@@ -3,9 +3,10 @@ import type { CSSProperties, ReactNode } from 'react';
 interface ModalProps {
     titulo: string;
     onCerrar: () => void;
-    children: ReactNode;
+    children: ReactNode; // contenido del modal (en este caso, el formulario)
 }
 
+// Ventana flotante reutilizable con fondo oscuro, título y botón de cerrar
 export default function Modal({ titulo, onCerrar, children }: ModalProps) {
     return (
         <div style={styles.fondo}>
@@ -23,6 +24,7 @@ export default function Modal({ titulo, onCerrar, children }: ModalProps) {
 }
 
 const styles: Record<string, CSSProperties> = {
+    // Cubre toda la pantalla y centra el modal
     fondo: {
         position: 'fixed',
         inset: 0,

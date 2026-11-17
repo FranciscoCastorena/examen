@@ -1,3 +1,4 @@
+// Cliente tal como lo devuelve la API (las fechas llegan como texto)
 export interface Cliente {
     id: string;
     nombre_completo: string;

@@ -57,10 +57,13 @@ export default function ClienteForm({ cliente, onGuardar, onCancelar }: ClienteF
         }
     }
 
+    // noValidate: desactiva la validación del navegador, se usa la nuestra
     return (
         <form onSubmit={handleSubmit} noValidate>
+            {/* Error que devolvió el backend, por ejemplo email repetido */}
             {errorServidor && <div style={styles.alertaError}>{errorServidor}</div>}
 
+            {/* El "name" de cada input debe coincidir con el campo de datos (lo usa handleChange) */}
             <div style={styles.campo}>
                 <label htmlFor="nombre_completo" style={styles.label}>
                     Nombre completo *
@@ -121,6 +124,7 @@ export default function ClienteForm({ cliente, onGuardar, onCancelar }: ClienteF
                 <button type="button" style={styles.botonSecundario} onClick={onCancelar}>
                     Cancelar
                 </button>
+                {/* Se desactiva mientras se guarda para evitar doble envío */}
                 <button type="submit" style={styles.botonPrimario} disabled={guardando}>
                     {guardando ? 'Guardando...' : 'Guardar'}
                 </button>
